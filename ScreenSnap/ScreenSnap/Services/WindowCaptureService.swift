@@ -9,28 +9,15 @@ import Foundation
 import AppKit
 import ScreenCaptureKit
 import SwiftUI
+import UserNotifications
 
 @available(macOS 12.3, *)
 class WindowCaptureService: NSObject {
     private var availableWindows: [SCWindow] = []
-    private var selectorWindow: NSWindow?
+    var selectorWindow: NSWindow?
 
     override init() {
         super.init()
-        setupNotificationObservers()
-    }
-
-    func setupNotificationObservers() {
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(handleWindowCaptureRequest),
-            name: .windowCaptureRequested,
-            object: nil
-        )
-    }
-
-    @objc func handleWindowCaptureRequest() {
-        showWindowSelector()
     }
 
     func showWindowSelector() {
@@ -45,6 +32,13 @@ class WindowCaptureService: NSObject {
 
     private func loadAvailableWindows() async {
         do {
+            // Vérifier les permissions d'abord
+            guard await checkScreenRecordingPermission() else {
+                print("Screen recording permission not granted")
+                availableWindows = []
+                return
+            }
+            
             let content = try await SCShareableContent.current
 
             // Filter out system and hidden windows
@@ -68,8 +62,26 @@ class WindowCaptureService: NSObject {
             availableWindows = []
         }
     }
+    
+    private func checkScreenRecordingPermission() async -> Bool {
+        // Pour macOS 14+, on peut vérifier les permissions de ScreenCaptureKit
+        do {
+            _ = try await SCShareableContent.current
+            return true
+        } catch {
+            print("Permission check failed: \(error)")
+            return false
+        }
+    }
 
     private func presentWindowSelector() {
+        // Vérifier qu'on a des fenêtres à afficher
+        guard !availableWindows.isEmpty else {
+            print("No windows available to display")
+            showNoWindowsAlert()
+            return
+        }
+        
         // Create window selector UI
         let selectorView = WindowSelectorView(
             windows: availableWindows
@@ -92,10 +104,18 @@ class WindowCaptureService: NSObject {
         window.center()
         window.makeKeyAndOrderFront(nil)
         window.level = .floating
-
         self.selectorWindow = window
 
         NSApp.activate(ignoringOtherApps: true)
+    }
+    
+    private func showNoWindowsAlert() {
+        let alert = NSAlert()
+        alert.messageText = "Aucune fenêtre disponible"
+        alert.informativeText = "Aucune fenêtre capturable n'a été trouvée. Assurez-vous que les applications sont ouvertes et visibles."
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "OK")
+        alert.runModal()
     }
 
     private func captureWindow(_ window: SCWindow) {
@@ -116,13 +136,25 @@ class WindowCaptureService: NSObject {
 
                 let nsImage = NSImage(cgImage: image, size: NSSize(width: image.width, height: image.height))
 
-                DispatchQueue.main.async {
+                await MainActor.run {
                     self.processCapture(image: nsImage, window: window)
                 }
             } catch {
                 print("Error capturing window: \(error.localizedDescription)")
+                await MainActor.run {
+                    self.showCaptureErrorAlert(error: error)
+                }
             }
         }
+    }
+    
+    private func showCaptureErrorAlert(error: Error) {
+        let alert = NSAlert()
+        alert.messageText = "Erreur de capture"
+        alert.informativeText = "Impossible de capturer la fenêtre : \(error.localizedDescription)"
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "OK")
+        alert.runModal()
     }
 
     private func processCapture(image: NSImage, window: SCWindow) {
@@ -191,7 +223,7 @@ class WindowCaptureService: NSObject {
         let content = UNMutableNotificationContent()
         content.title = "ScreenSnap"
         content.body = "Fenêtre '\(windowTitle)' capturée"
-        content.sound = nil
+        content.sound = UNNotificationSound.default
 
         let request = UNNotificationRequest(
             identifier: UUID().uuidString,
@@ -203,7 +235,7 @@ class WindowCaptureService: NSObject {
     }
 
     deinit {
-        NotificationCenter.default.removeObserver(self)
+        // No observers to remove
     }
 }
 
@@ -215,7 +247,7 @@ struct WindowSelectorView: View {
     let onSelect: (SCWindow) -> Void
 
     @State private var searchText = ""
-    @State private var hoveredWindow: SCWindow.WindowID?
+    @State private var hoveredWindow: UInt32?
 
     var filteredWindows: [SCWindow] {
         if searchText.isEmpty {
@@ -307,7 +339,7 @@ struct WindowThumbnailView: View {
                 .overlay(
                     Image(systemName: "macwindow")
                         .font(.system(size: 40))
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(.secondary)
                 )
                 .aspectRatio(16/10, contentMode: .fit)
 
@@ -331,7 +363,7 @@ struct WindowThumbnailView: View {
                 // Dimensions
                 Text("\(Int(window.frame.width)) × \(Int(window.frame.height))")
                     .font(.caption2)
-                    .foregroundStyle(.tertiary)
+                    .foregroundStyle(.secondary)
             }
         }
         .padding(12)

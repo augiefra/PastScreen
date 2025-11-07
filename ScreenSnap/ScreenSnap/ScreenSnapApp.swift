@@ -7,37 +7,88 @@
 
 import SwiftUI
 import AppKit
+import UserNotifications
+import Combine
+
+// Notification names
+extension Notification.Name {
+    static let screenshotCaptured = Notification.Name("screenshotCaptured")
+}
 
 @main
 struct ScreenSnapApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    @StateObject private var settings = AppSettings.shared
 
     var body: some Scene {
+        // Application de menu bar uniquement - pas de fenêtre visible
         Settings {
-            SettingsView()
-                .environmentObject(settings)
+            EmptyView()
         }
     }
 }
 
-class AppDelegate: NSObject, NSApplicationDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
     var statusItem: NSStatusItem?
-    var popover: NSPopover?
+    var statusMenu: NSMenu?  // Référence persistante au menu
     var screenshotService: ScreenshotService?
     var windowCaptureService: WindowCaptureService?
+    var preferencesWindow: NSWindow?
+    var preferencesWindowDelegate: PreferencesWindowDelegate?  // Strong reference
+
+    // Services
+    var permissionManager = PermissionManager.shared
+
+    // Pour le raccourci clavier global
+    var globalEventMonitor: Any?
+    var settings = AppSettings.shared
+    private var settingsObserver: AnyCancellable?
+
+    // Track last screenshot for "Reveal in Finder" menu item
+    var lastScreenshotPath: String?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Hide dock icon - Menu bar app only
-        NSApp.setActivationPolicy(.accessory)
+        // Vérifier qu'une seule instance tourne (temporairement désactivé pour test)
+        // if NSRunningApplication.runningApplications(withBundleIdentifier: Bundle.main.bundleIdentifier ?? "").count > 1 {
+        //     print("Une autre instance de ScreenSnap est déjà en cours d'exécution")
+        //     NSApp.terminate(nil)
+        //     return
+        // }
+
+        // Setup notification center delegate first
+        UNUserNotificationCenter.current().delegate = self
+
+        // IMPORTANT: Request permissions using PermissionManager
+        // This provides retry logic and better diagnostics
+        permissionManager.checkAllPermissions()
+
+        // Request notification permission (with diagnostic logging)
+        permissionManager.requestPermission(.notifications) { granted in
+            if granted {
+                print("✅ [APP] Notifications authorized")
+            } else {
+                print("⚠️ [APP] Notifications not authorized - DynamicIslandManager will provide feedback")
+            }
+        }
 
         // Create menu bar item
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
 
         if let button = statusItem?.button {
-            button.image = NSImage(systemSymbolName: "camera.fill", accessibilityDescription: "ScreenSnap")
-            button.action = #selector(showMenu)
+            // Utiliser un SF Symbol parfait pour la barre de menus
+            // "camera.viewfinder" = icône cadre de sélection + caméra
+            if let icon = NSImage(systemSymbolName: "camera.viewfinder", accessibilityDescription: "ScreenSnap") {
+                icon.isTemplate = true  // Adaptation automatique au thème clair/sombre
+                button.image = icon
+                print("✅ SF Symbol icon: camera.viewfinder")
+            } else {
+                // Fallback
+                button.image = NSImage(systemSymbolName: "camera.fill", accessibilityDescription: "ScreenSnap")
+                print("⚠️ Fallback: camera.fill")
+            }
+
+            button.action = #selector(handleButtonClick)
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
+            button.toolTip = "ScreenSnap - Raccourci: ⌥⌘S"
         }
 
         // Initialize services
@@ -47,92 +98,368 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Setup menu
         setupMenu()
 
-        // Request permissions
-        requestScreenRecordingPermission()
-    }
+        // Request all necessary permissions
+        requestAllPermissions()
+        
+        // Configurer le raccourci clavier global Option + Cmd + S
+        setupGlobalHotkey()
+        
+        // Observer les changements de settings pour le raccourci clavier
+        setupSettingsObserver()
 
-    @objc func showMenu() {
-        guard let button = statusItem?.button else { return }
+        // Observer les captures d'écran réussies pour mettre à jour lastScreenshotPath
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleScreenshotCaptured),
+            name: .screenshotCaptured,
+            object: nil
+        )
 
-        let event = NSApp.currentEvent
-        if event?.type == .rightMouseUp {
-            // Right click - show menu
-            statusItem?.menu = createMenu()
-            button.performClick(nil)
-            statusItem?.menu = nil
-        } else {
-            // Left click - show popover
-            togglePopover()
+        // Show onboarding if first launch
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            SimpleOnboardingManager.shared.showIfNeeded()
         }
     }
 
-    @objc func togglePopover() {
-        guard let button = statusItem?.button else { return }
-
-        if let popover = popover, popover.isShown {
-            popover.performClose(nil)
-            self.popover = nil
-        } else {
-            showPopover(button)
+    @objc func handleScreenshotCaptured(_ notification: Notification) {
+        if let path = notification.userInfo?["filePath"] as? String {
+            lastScreenshotPath = path
+            print("📝 [APP] Dernière capture mise à jour: \(path)")
         }
     }
 
-    func showPopover(_ sender: NSButton) {
-        let popover = NSPopover()
-        popover.contentSize = NSSize(width: 320, height: 200)
-        popover.behavior = .transient
-        popover.animates = true
-
-        let hostingController = NSHostingController(rootView: MenuBarPopoverView())
-        popover.contentViewController = hostingController
-
-        popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
-        self.popover = popover
-
-        NSApp.activate(ignoringOtherApps: true)
+    @objc func handleButtonClick() {
+        // Tout clic (gauche ou droit) ouvre le menu - comportement standard des apps menu bar
+        if let button = statusItem?.button {
+            statusMenu = createMenu()  // Recréer pour mettre à jour "Voir la dernière capture"
+            statusMenu?.popUp(positioning: nil, at: NSPoint(x: 0, y: button.bounds.height), in: button)
+        }
     }
 
     func setupMenu() {
-        // Menu is created dynamically on right-click
+        // Créer le menu une seule fois mais NE PAS l'assigner au statusItem
+        // On l'affichera manuellement lors du clic droit
+        statusMenu = createMenu()
     }
 
     func createMenu() -> NSMenu {
         let menu = NSMenu()
 
-        menu.addItem(NSMenuItem(title: "Capture d'écran", action: #selector(takeScreenshot), keyEquivalent: ""))
-        menu.addItem(NSMenuItem(title: "Capturer une fenêtre", action: #selector(captureWindow), keyEquivalent: ""))
+        let screenshotItem = NSMenuItem(title: "📸 Capturer une zone", action: #selector(takeScreenshot), keyEquivalent: "")
+        screenshotItem.target = self
+        screenshotItem.keyEquivalent = "s"
+        screenshotItem.keyEquivalentModifierMask = [.option, .command]
+        menu.addItem(screenshotItem)
+
+        let windowItem = NSMenuItem(title: "🪟 Capturer une fenêtre", action: #selector(captureWindow), keyEquivalent: "")
+        windowItem.target = self
+        menu.addItem(windowItem)
+
         menu.addItem(NSMenuItem.separator())
-        menu.addItem(NSMenuItem(title: "Préférences...", action: #selector(openPreferences), keyEquivalent: ","))
+
+        // "Reveal last screenshot" menu item - enabled only if there's a recent capture
+        let revealItem = NSMenuItem(title: "📁 Voir la dernière capture", action: #selector(revealLastScreenshot), keyEquivalent: "")
+        revealItem.target = self
+        revealItem.isEnabled = (lastScreenshotPath != nil)
+        menu.addItem(revealItem)
+
         menu.addItem(NSMenuItem.separator())
-        menu.addItem(NSMenuItem(title: "Quitter", action: #selector(quit), keyEquivalent: "q"))
+
+        let prefsItem = NSMenuItem(title: "⚙️ Préférences...", action: #selector(openPreferences), keyEquivalent: ",")
+        prefsItem.target = self
+        menu.addItem(prefsItem)
+
+        menu.addItem(NSMenuItem.separator())
+
+        let quitItem = NSMenuItem(title: "Quitter", action: #selector(quit), keyEquivalent: "q")
+        quitItem.target = self
+        menu.addItem(quitItem)
+
+        print("✅ Menu créé avec succès avec \(menu.items.count) éléments")
 
         return menu
     }
 
     @objc func takeScreenshot() {
-        screenshotService?.captureScreenshot()
+        guard let screenshotService = screenshotService else {
+            print("❌ Service de capture d'écran non initialisé")
+            return
+        }
+        screenshotService.captureScreenshot()
     }
 
     @objc func captureWindow() {
-        windowCaptureService?.showWindowSelector()
+        guard let windowCaptureService = windowCaptureService else {
+            print("❌ Service de capture de fenêtre non initialisé")
+            return
+        }
+        windowCaptureService.showWindowSelector()
+    }
+
+    @objc func revealLastScreenshot() {
+        guard let path = lastScreenshotPath else {
+            print("⚠️ Aucune capture récente")
+            return
+        }
+
+        // Verify file still exists
+        guard FileManager.default.fileExists(atPath: path) else {
+            print("⚠️ Fichier introuvable: \(path)")
+            // Reset lastScreenshotPath since file doesn't exist
+            lastScreenshotPath = nil
+            // Show alert
+            let alert = NSAlert()
+            alert.messageText = "Fichier introuvable"
+            alert.informativeText = "La capture n'existe plus sur le disque."
+            alert.alertStyle = .warning
+            alert.runModal()
+            return
+        }
+
+        print("📁 [MENU] Ouverture du Finder: \(path)")
+        NSWorkspace.shared.selectFile(path, inFileViewerRootedAtPath: "")
     }
 
     @objc func openPreferences() {
-        NSApp.activate(ignoringOtherApps: true)
-        if #available(macOS 14, *) {
-            NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-        } else {
-            NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
+        // Si la fenêtre existe déjà, la mettre au premier plan
+        if let window = preferencesWindow {
+            NSApp.activate(ignoringOtherApps: true)
+            window.makeKeyAndOrderFront(nil)
+            return
         }
+        
+        // Créer la fenêtre de préférences
+        let settingsView = SettingsView()
+            .environmentObject(AppSettings.shared)
+        
+        let hostingController = NSHostingController(rootView: settingsView)
+        
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 500, height: 400),
+            styleMask: [.titled, .closable, .miniaturizable],
+            backing: .buffered,
+            defer: false
+        )
+        
+        window.title = "Préférences ScreenSnap"
+        window.contentViewController = hostingController
+        window.center()
+        window.setFrameAutosaveName("PreferencesWindow")
+        window.isReleasedWhenClosed = false
+        
+        // Gérer la fermeture de la fenêtre
+        let delegate = PreferencesWindowDelegate { [weak self] in
+            self?.preferencesWindow = nil
+            self?.preferencesWindowDelegate = nil
+        }
+        self.preferencesWindowDelegate = delegate
+        window.delegate = delegate
+        
+        self.preferencesWindow = window
+        
+        NSApp.activate(ignoringOtherApps: true)
+        window.makeKeyAndOrderFront(nil)
     }
 
     @objc func quit() {
+        // Fermer toutes les fenêtres ouvertes
+        preferencesWindow?.close()
+        preferencesWindow = nil
+        
+        windowCaptureService?.selectorWindow?.close()
+        
+        // Nettoyer l'icône de la barre de menu
+        if let statusItem = statusItem {
+            NSStatusBar.system.removeStatusItem(statusItem)
+            self.statusItem = nil
+        }
+        
+        // Terminer l'application (le raccourci reste actif)
         NSApplication.shared.terminate(nil)
     }
+    
+    // Forcer l'affichage des notifications même quand l'app est active
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        print("🔔 [DELEGATE] willPresent appelé - notification à afficher")
+        print("🔔 [DELEGATE] Titre: \(notification.request.content.title)")
+        print("🔔 [DELEGATE] Body: \(notification.request.content.body)")
 
-    func requestScreenRecordingPermission() {
-        if #available(macOS 10.15, *) {
-            CGRequestScreenCaptureAccess()
+        // Afficher la notification même si l'app est au premier plan
+        // Utiliser .list au lieu de .banner pour macOS 12+
+        if #available(macOS 12.0, *) {
+            completionHandler([.list, .banner])
+        } else {
+            completionHandler([.banner])
         }
+    }
+
+    // UNUserNotificationCenter - gérer le clic
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        // Récupérer le chemin du fichier depuis userInfo
+        if let filePath = response.notification.request.content.userInfo["filePath"] as? String {
+            print("🖱️ Clic sur notification UN - ouverture du fichier: \(filePath)")
+
+            // Ouvrir le Finder et sélectionner le fichier
+            NSWorkspace.shared.selectFile(filePath, inFileViewerRootedAtPath: "")
+        }
+
+        completionHandler()
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        // Nettoyage final
+        settingsObserver?.cancel()
+        removeGlobalHotkey()
+        if let statusItem = statusItem {
+            NSStatusBar.system.removeStatusItem(statusItem)
+        }
+    }
+
+    func requestAllPermissions() {
+        print("🔐 [APP] Requesting all necessary permissions...")
+
+        // Check current status of all permissions
+        permissionManager.checkAllPermissions()
+
+        // Request Screen Recording permission
+        permissionManager.requestPermission(.screenRecording) { granted in
+            if !granted {
+                print("⚠️ [APP] Screen Recording not authorized")
+            }
+        }
+
+        // Request Accessibility permission (for global hotkeys)
+        permissionManager.requestPermission(.accessibility) { granted in
+            if !granted {
+                print("⚠️ [APP] Accessibility not authorized - global hotkeys may not work")
+            }
+        }
+
+        // Check if any permissions are missing after 2 seconds
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            let missing = self.permissionManager.getMissingPermissions()
+            if !missing.isEmpty {
+                print("⚠️ [APP] Missing permissions: \(missing.map { $0.rawValue }.joined(separator: ", "))")
+                // Only show alert if Screen Recording is missing (critical)
+                if missing.contains(.screenRecording) {
+                    self.permissionManager.showPermissionAlert(for: missing)
+                }
+            } else {
+                print("✅ [APP] All permissions granted")
+            }
+        }
+    }
+    
+    // MARK: - Raccourci clavier global
+    
+    func setupSettingsObserver() {
+        // Observer les changements du setting globalHotkeyEnabled
+        settingsObserver = settings.$globalHotkeyEnabled.sink { [weak self] enabled in
+            DispatchQueue.main.async {
+                if enabled {
+                    self?.setupGlobalHotkey()
+                } else {
+                    self?.removeGlobalHotkey()
+                }
+            }
+        }
+    }
+    
+    func setupGlobalHotkey() {
+        // Ne pas créer plusieurs moniteurs
+        removeGlobalHotkey()
+        
+        // Vérifier si le raccourci est activé dans les settings
+        guard settings.globalHotkeyEnabled else {
+            print("Raccourci clavier global désactivé dans les préférences")
+            return
+        }
+        
+        // Vérifier l'autorisation d'accessibilité (OBLIGATOIRE pour les raccourcis globaux)
+        let trusted = AXIsProcessTrusted()
+        if !trusted {
+            print("⚠️ [HOTKEY] L'application n'a pas les autorisations d'accessibilité!")
+            print("⚠️ [HOTKEY] Le raccourci global ne fonctionnera PAS sans cette autorisation")
+
+            // Demander l'autorisation
+            let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true]
+            AXIsProcessTrustedWithOptions(options as CFDictionary)
+
+            // Afficher une alerte pour guider l'utilisateur
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                let alert = NSAlert()
+                alert.messageText = "🔑 Autorisation Accessibilité requise"
+                alert.informativeText = """
+                Pour que le raccourci ⌥⌘S fonctionne, vous devez autoriser ScreenSnap:
+
+                1️⃣ Cliquez sur "Ouvrir Réglages Système"
+                2️⃣ Dans la section Accessibilité, cherchez "ScreenSnap"
+                3️⃣ Si ScreenSnap n'apparaît pas, cliquez sur "+" pour l'ajouter
+                4️⃣ Activez la case à côté de ScreenSnap
+                5️⃣ Relancez l'application
+
+                Note: Les builds de développement peuvent ne pas apparaître automatiquement dans la liste.
+                """
+                alert.alertStyle = .informational
+                alert.addButton(withTitle: "Ouvrir Réglages Système")
+                alert.addButton(withTitle: "Plus tard")
+
+                let response = alert.runModal()
+                if response == .alertFirstButtonReturn {
+                    // Ouvrir les réglages système - Accessibilité
+                    NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!)
+
+                    // Ouvrir aussi le Finder pour montrer l'emplacement de l'app
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                        if let appPath = Bundle.main.bundlePath as String? {
+                            NSWorkspace.shared.selectFile(appPath, inFileViewerRootedAtPath: "")
+                        }
+                    }
+                }
+            }
+
+            return  // Ne pas configurer le raccourci si pas d'autorisation
+        }
+        
+        // Créer le moniteur d'événements global pour Option + Cmd + S
+        globalEventMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            // Vérifier les modifiers (Option + Command, sans Shift, Control ou Fn)
+            let modifiers = event.modifierFlags.intersection([.option, .command, .shift, .control, .function])
+            let isCorrectModifiers = modifiers == [.option, .command]
+
+            // Code 1 pour 'S' (QWERTY layout)
+            let isS = event.keyCode == 1 || event.characters?.lowercased() == "s"
+
+            if isCorrectModifiers && isS {
+                print("🎯 [HOTKEY] Raccourci ⌥⌘S détecté!")
+                print("   keyCode: \(event.keyCode), characters: \(event.characters ?? "nil")")
+                self?.takeScreenshot()
+            }
+        }
+
+        print("✅ [HOTKEY] Raccourci clavier global ⌥⌘S configuré avec succès")
+    }
+    
+    func removeGlobalHotkey() {
+        if let monitor = globalEventMonitor {
+            NSEvent.removeMonitor(monitor)
+            globalEventMonitor = nil
+            print("❌ Raccourci clavier global supprimé")
+        }
+    }
+}
+
+// MARK: - Preferences Window Delegate
+
+class PreferencesWindowDelegate: NSObject, NSWindowDelegate {
+    private let onClose: () -> Void
+    
+    init(onClose: @escaping () -> Void) {
+        self.onClose = onClose
+        super.init()
+    }
+    
+    func windowWillClose(_ notification: Notification) {
+        onClose()
     }
 }

@@ -104,7 +104,7 @@ struct QuickActionButton: View {
             .padding(.vertical, 10)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(isHovered ? .quaternary : Color.clear)
+                    .fill(isHovered ? Color(nsColor: .controlAccentColor).opacity(0.1) : Color.clear)
             )
             .scaleEffect(isHovered ? 1.02 : 1.0)
             .animation(.quickSpring, value: isHovered)

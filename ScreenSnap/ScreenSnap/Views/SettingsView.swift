@@ -57,6 +57,15 @@ struct GeneralSettingsTab: View {
             } header: {
                 Text("Fonctionnalités")
             }
+
+            Section {
+                Button("Afficher le tutoriel de démarrage") {
+                    SimpleOnboardingManager.shared.show()
+                }
+                .help("Réaffiche l'écran d'accueil avec les instructions")
+            } header: {
+                Text("Aide")
+            }
         }
         .formStyle(.grouped)
         .padding()
@@ -81,9 +90,40 @@ struct CaptureSettingsTab: View {
             }
 
             Section {
-                Text("Les raccourcis clavier seront disponibles dans une prochaine version.")
-                    .foregroundStyle(.secondary)
-                    .font(.caption)
+                VStack(alignment: .leading, spacing: 12) {
+                    Toggle("Activer le raccourci clavier global", isOn: $settings.globalHotkeyEnabled)
+                        .help("Active ou désactive le raccourci ⌥⌘S pour capturer une zone")
+                    
+                    if settings.globalHotkeyEnabled {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Text("Capturer une zone :")
+                                Spacer()
+                                Text("⌥⌘S")
+                                    .font(.system(.body, design: .monospaced))
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 2)
+                                    .background(Color.secondary.opacity(0.1))
+                                    .cornerRadius(4)
+                            }
+                            
+                            HStack {
+                                Text("Clic sur l'icône :")
+                                Spacer()
+                                Text("Ouvrir le menu")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .padding(.leading, 20)
+                        .opacity(0.8)
+                    } else {
+                        Text("Le raccourci clavier global est désactivé. Vous pouvez toujours utiliser l'icône de la barre de menu.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .padding(.leading, 20)
+                    }
+                }
             } header: {
                 Text("Raccourcis clavier")
             }

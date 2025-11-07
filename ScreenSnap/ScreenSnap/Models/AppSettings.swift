@@ -7,19 +7,71 @@
 
 import Foundation
 import SwiftUI
+import Combine
 
 class AppSettings: ObservableObject {
     static let shared = AppSettings()
 
-    @AppStorage("copyToClipboard") var copyToClipboard: Bool = true
-    @AppStorage("saveToFile") var saveToFile: Bool = false
-    @AppStorage("saveFolderPath") var saveFolderPath: String = NSTemporaryDirectory() + "ScreenSnap/"
-    @AppStorage("imageFormat") var imageFormat: String = "png"
-    @AppStorage("playSoundOnCapture") var playSoundOnCapture: Bool = true
-    @AppStorage("showDimensionsLabel") var showDimensionsLabel: Bool = true
-    @AppStorage("enableAnnotations") var enableAnnotations: Bool = true
+    @Published var copyToClipboard: Bool {
+        didSet {
+            UserDefaults.standard.set(copyToClipboard, forKey: "copyToClipboard")
+        }
+    }
+
+    @Published var saveToFile: Bool {
+        didSet {
+            UserDefaults.standard.set(saveToFile, forKey: "saveToFile")
+        }
+    }
+
+    @Published var saveFolderPath: String {
+        didSet {
+            UserDefaults.standard.set(saveFolderPath, forKey: "saveFolderPath")
+            ensureFolderExists()
+        }
+    }
+
+    @Published var imageFormat: String {
+        didSet {
+            UserDefaults.standard.set(imageFormat, forKey: "imageFormat")
+        }
+    }
+
+    @Published var playSoundOnCapture: Bool {
+        didSet {
+            UserDefaults.standard.set(playSoundOnCapture, forKey: "playSoundOnCapture")
+        }
+    }
+
+    @Published var showDimensionsLabel: Bool {
+        didSet {
+            UserDefaults.standard.set(showDimensionsLabel, forKey: "showDimensionsLabel")
+        }
+    }
+
+    @Published var enableAnnotations: Bool {
+        didSet {
+            UserDefaults.standard.set(enableAnnotations, forKey: "enableAnnotations")
+        }
+    }
+
+    @Published var globalHotkeyEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(globalHotkeyEnabled, forKey: "globalHotkeyEnabled")
+        }
+    }
 
     private init() {
+        // Load saved values or use defaults
+        self.copyToClipboard = UserDefaults.standard.object(forKey: "copyToClipboard") as? Bool ?? true
+        self.saveToFile = UserDefaults.standard.object(forKey: "saveToFile") as? Bool ?? false
+        self.saveFolderPath = UserDefaults.standard.string(forKey: "saveFolderPath") ?? (NSTemporaryDirectory() + "ScreenSnap/")
+        self.imageFormat = UserDefaults.standard.string(forKey: "imageFormat") ?? "png"
+        self.playSoundOnCapture = UserDefaults.standard.object(forKey: "playSoundOnCapture") as? Bool ?? true
+        self.showDimensionsLabel = UserDefaults.standard.object(forKey: "showDimensionsLabel") as? Bool ?? true
+        self.enableAnnotations = UserDefaults.standard.object(forKey: "enableAnnotations") as? Bool ?? true
+        self.globalHotkeyEnabled = UserDefaults.standard.object(forKey: "globalHotkeyEnabled") as? Bool ?? true
+
         ensureFolderExists()
     }
 
