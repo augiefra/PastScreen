@@ -31,7 +31,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
     var statusItem: NSStatusItem?
     var statusMenu: NSMenu?  // Référence persistante au menu
     var screenshotService: ScreenshotService?
-    var windowCaptureService: WindowCaptureService?
+    var fullScreenCaptureService: FullScreenCaptureService?
     var preferencesWindow: NSWindow?
     var preferencesWindowDelegate: PreferencesWindowDelegate?  // Strong reference
 
@@ -92,7 +92,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
 
         // Initialize services
         screenshotService = ScreenshotService()
-        windowCaptureService = WindowCaptureService()
+        fullScreenCaptureService = FullScreenCaptureService()
 
         // Setup menu
         setupMenu()
@@ -150,9 +150,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         screenshotItem.keyEquivalentModifierMask = [.option, .command]
         menu.addItem(screenshotItem)
 
-        let windowItem = NSMenuItem(title: "🪟 Capturer une fenêtre", action: #selector(captureWindow), keyEquivalent: "")
-        windowItem.target = self
-        menu.addItem(windowItem)
+        let fullScreenItem = NSMenuItem(title: "🖥️ Capturer l'écran complet", action: #selector(captureFullScreen), keyEquivalent: "")
+        fullScreenItem.target = self
+        menu.addItem(fullScreenItem)
 
         menu.addItem(NSMenuItem.separator())
 
@@ -187,12 +187,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         screenshotService.captureScreenshot()
     }
 
-    @objc func captureWindow() {
-        guard let windowCaptureService = windowCaptureService else {
-            print("❌ Service de capture de fenêtre non initialisé")
+    @objc func captureFullScreen() {
+        guard let fullScreenCaptureService = fullScreenCaptureService else {
+            print("❌ Service de capture d'écran non initialisé")
             return
         }
-        windowCaptureService.showWindowSelector()
+        fullScreenCaptureService.showScreenSelector()
     }
 
     @objc func revealLastScreenshot() {
@@ -265,7 +265,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         preferencesWindow?.close()
         preferencesWindow = nil
         
-        windowCaptureService?.selectorWindow?.close()
+        // Cleanup full screen service if needed
         
         // Nettoyer l'icône de la barre de menu
         if let statusItem = statusItem {
