@@ -74,16 +74,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
 
         if let button = statusItem?.button {
-            // Utiliser un SF Symbol parfait pour la barre de menus
-            // "camera.viewfinder" = icône cadre de sélection + caméra
-            if let icon = NSImage(systemSymbolName: "camera.viewfinder", accessibilityDescription: "ScreenSnap") {
+            // Utiliser l'icône personnalisée depuis Assets.xcassets
+            if let icon = NSImage(named: "MenuBarIcon") {
                 icon.isTemplate = true  // Adaptation automatique au thème clair/sombre
                 button.image = icon
-                print("✅ SF Symbol icon: camera.viewfinder")
+                print("✅ Custom MenuBarIcon loaded from Assets")
             } else {
-                // Fallback
-                button.image = NSImage(systemSymbolName: "camera.fill", accessibilityDescription: "ScreenSnap")
-                print("⚠️ Fallback: camera.fill")
+                // Fallback vers SF Symbol
+                button.image = NSImage(systemSymbolName: "camera.viewfinder", accessibilityDescription: "ScreenSnap")
+                print("⚠️ Fallback: camera.viewfinder SF Symbol")
             }
 
             button.action = #selector(handleButtonClick)
