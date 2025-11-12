@@ -423,9 +423,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         
         // Créer le moniteur d'événements global pour Option + Cmd + S
         globalEventMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            // Vérifier les modifiers (Option + Command, sans Shift, Control ou Fn)
-            let modifiers = event.modifierFlags.intersection([.option, .command, .shift, .control, .function])
-            let isCorrectModifiers = modifiers == [.option, .command]
+            // Vérifier que Option et Command sont pressés (en ignorant les autres flags système)
+            let hasOption = event.modifierFlags.contains(.option)
+            let hasCommand = event.modifierFlags.contains(.command)
+            let hasShift = event.modifierFlags.contains(.shift)
+            let hasControl = event.modifierFlags.contains(.control)
+
+            // Option + Command pressés, mais PAS Shift ou Control
+            let isCorrectModifiers = hasOption && hasCommand && !hasShift && !hasControl
 
             // Code 1 pour 'S' (QWERTY layout)
             let isS = event.keyCode == 1 || event.characters?.lowercased() == "s"

@@ -64,8 +64,11 @@ class AppSettings: ObservableObject {
     private init() {
         // Load saved values or use defaults
         self.copyToClipboard = UserDefaults.standard.object(forKey: "copyToClipboard") as? Bool ?? true
-        self.saveToFile = UserDefaults.standard.object(forKey: "saveToFile") as? Bool ?? false
+        self.saveToFile = UserDefaults.standard.object(forKey: "saveToFile") as? Bool ?? true  // Changed default to true
+
+        // Default to temp directory (cleared on reboot) for "jetable" workflow
         self.saveFolderPath = UserDefaults.standard.string(forKey: "saveFolderPath") ?? (NSTemporaryDirectory() + "ScreenSnap/")
+
         self.imageFormat = UserDefaults.standard.string(forKey: "imageFormat") ?? "png"
         self.playSoundOnCapture = UserDefaults.standard.object(forKey: "playSoundOnCapture") as? Bool ?? true
         self.showDimensionsLabel = UserDefaults.standard.object(forKey: "showDimensionsLabel") as? Bool ?? true
