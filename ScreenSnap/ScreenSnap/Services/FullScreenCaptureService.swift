@@ -32,25 +32,12 @@ class FullScreenCaptureService: NSObject {
     }
 
     func showScreenSelector() {
+        print("🎬 [FULLSCREEN] showScreenSelector() called")
+
+        // SIMPLIFIED: Always capture main screen directly (no modal dialog)
         Task {
-            let displays = await captureAllScreens()
-
-            guard !displays.isEmpty else {
-                await MainActor.run {
-                    showNoScreenAlert()
-                }
-                return
-            }
-
-            if displays.count == 1 {
-                // Un seul écran, capturer directement
-                await captureScreen(index: 0)
-            } else {
-                // Plusieurs écrans, demander lequel
-                await MainActor.run {
-                    presentScreenSelector(displays: displays)
-                }
-            }
+            print("📋 [FULLSCREEN] Capturing main screen directly...")
+            await captureScreen(index: 0)
         }
     }
 
@@ -147,7 +134,9 @@ class FullScreenCaptureService: NSObject {
         print("🎯 [FULLSCREEN] Starting capture for screen \(index + 1)")
 
         do {
+            print("📡 [FULLSCREEN] Fetching SCShareableContent.current...")
             let content = try await SCShareableContent.current
+            print("✅ [FULLSCREEN] Got content, displays count: \(content.displays.count)")
 
             guard index < content.displays.count else {
                 print("❌ [FULLSCREEN] Invalid screen index: \(index)")
@@ -158,7 +147,6 @@ class FullScreenCaptureService: NSObject {
             }
 
             let display = content.displays[index]
-
             print("📐 [FULLSCREEN] Display: \(display.width)x\(display.height), ID: \(display.displayID)")
 
             // Create content filter for full screen
@@ -178,12 +166,19 @@ class FullScreenCaptureService: NSObject {
             )
 
             print("✅ [FULLSCREEN] Image captured: \(image.width)x\(image.height)")
+            print("🔍 [FULLSCREEN] CGImage details - width:\(image.width) height:\(image.height) bitsPerComponent:\(image.bitsPerComponent) bitsPerPixel:\(image.bitsPerPixel)")
 
             let nsImage = NSImage(cgImage: image, size: NSSize(width: image.width, height: image.height))
+            print("🔍 [FULLSCREEN] NSImage created - size:\(nsImage.size) isValid:\(nsImage.isValid)")
+
+            // Verify image has representations
+            print("🔍 [FULLSCREEN] NSImage representations count: \(nsImage.representations.count)")
 
             // Get display name for notification
             let nsScreens = NSScreen.screens
             let displayName = getDisplayName(for: display, at: index, nsScreens: nsScreens)
+
+            print("📍 [FULLSCREEN] About to call processCapture on MainActor...")
 
             await MainActor.run {
                 processCapture(image: nsImage, screenName: displayName)
@@ -194,6 +189,7 @@ class FullScreenCaptureService: NSObject {
         } catch {
             print("❌ [FULLSCREEN] Error capturing screen: \(error.localizedDescription)")
             print("❌ [FULLSCREEN] Error details: \(error)")
+
             await MainActor.run {
                 showCaptureErrorAlert(message: error.localizedDescription)
             }
@@ -202,13 +198,15 @@ class FullScreenCaptureService: NSObject {
 
     private func processCapture(image: NSImage, screenName: String) {
         print("💾 [FULLSCREEN] Processing capture for \(screenName)")
+        print("💾 [FULLSCREEN] Image size: \(image.size.width)x\(image.size.height)")
 
         // Copy to clipboard if enabled
         if AppSettings.shared.copyToClipboard {
+            print("📋 [FULLSCREEN] Copying to clipboard...")
             let pasteboard = NSPasteboard.general
             pasteboard.clearContents()
             let success = pasteboard.writeObjects([image])
-            print("📋 [FULLSCREEN] Clipboard copy: \(success ? "✅ Success" : "❌ Failed")")
+            print("📋 [FULLSCREEN] Clipboard copy: \(success ? "✅" : "❌")")
         }
 
         // Save to file if enabled
@@ -216,16 +214,13 @@ class FullScreenCaptureService: NSObject {
             saveToFile(image: image, screenName: screenName)
         }
 
-        // Play sound AFTER successful capture
+        // Play sound
         if AppSettings.shared.playSoundOnCapture {
             NSSound(named: "Glass")?.play()
-            print("🔊 [FULLSCREEN] Playing capture sound")
         }
 
-        // Show Dynamic Island notification
+        // Show notifications
         DynamicIslandManager.shared.show(message: "Capturé", duration: 2.0)
-
-        // Also show native notification
         showNotification(screenName: screenName)
 
         print("✅ [FULLSCREEN] Processing complete")

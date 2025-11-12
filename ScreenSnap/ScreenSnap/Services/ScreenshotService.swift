@@ -66,6 +66,40 @@ class ScreenshotService: NSObject {
         }
     }
 
+    // NEW: Full screen capture using native screencapture utility
+    func captureFullScreen() {
+        print("🎬 [SERVICE] Début de la capture plein écran avec screencapture natif...")
+
+        // Créer un fichier temporaire
+        let timestamp = Date().timeIntervalSince1970
+        let filename = "ScreenSnap-FullScreen-\(Int(timestamp)).png"
+        let tempPath = (NSTemporaryDirectory() as NSString).appendingPathComponent(filename)
+
+        // Lancer screencapture pour capturer l'écran principal
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/sbin/screencapture")
+        process.arguments = [
+            "-m",           // Capture main display
+            "-o",           // No shadow
+            tempPath        // Output file
+        ]
+
+        process.terminationHandler = { [weak self] process in
+            DispatchQueue.main.async {
+                self?.handleScreencaptureCompletion(exitCode: process.terminationStatus, filePath: tempPath)
+            }
+        }
+
+        do {
+            try process.run()
+            self.captureTask = process
+            print("✅ [SERVICE] screencapture lancé pour écran complet")
+        } catch {
+            print("❌ [SERVICE] Erreur lancement screencapture: \(error)")
+            showErrorAlert("Impossible de lancer la capture d'écran")
+        }
+    }
+
     private func handleScreencaptureCompletion(exitCode: Int32, filePath: String) {
         captureTask = nil
 

@@ -188,11 +188,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
     }
 
     @objc func captureFullScreen() {
-        guard let fullScreenCaptureService = fullScreenCaptureService else {
+        guard let screenshotService = screenshotService else {
             print("❌ Service de capture d'écran non initialisé")
             return
         }
-        fullScreenCaptureService.showScreenSelector()
+        // Use the same ScreenshotService but capture full screen
+        screenshotService.captureFullScreen()
     }
 
     @objc func revealLastScreenshot() {
