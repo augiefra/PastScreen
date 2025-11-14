@@ -84,7 +84,8 @@ class CustomNotificationManager {
             NSAnimationContext.runAnimationGroup({ context in
                 context.duration = 0.3
                 panel.animator().alphaValue = 1.0
-            }, completionHandler: {
+            }, completionHandler: { [weak self] in
+                guard self != nil else { return }
                 print("✅ [CUSTOM NOTIF] Notification displayed")
             })
 
@@ -105,9 +106,9 @@ class CustomNotificationManager {
         NSAnimationContext.runAnimationGroup({ context in
             context.duration = 0.2
             panel.animator().alphaValue = 0.0
-        }, completionHandler: {
+        }, completionHandler: { [weak self] in
             panel.close()
-            self.notificationPanel = nil
+            self?.notificationPanel = nil
             print("🗑️ [CUSTOM NOTIF] Notification dismissed")
         })
     }
