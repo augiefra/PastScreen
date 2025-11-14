@@ -92,7 +92,10 @@ class SelectionOverlayView: NSView {
 
     override func mouseUp(with event: NSEvent) {
         guard isDragging, let start = startPoint, let end = endPoint else {
-            onCancel?()
+            // Defer callback to avoid crash during event handling
+            DispatchQueue.main.async { [weak self] in
+                self?.onCancel?()
+            }
             return
         }
 
@@ -105,10 +108,15 @@ class SelectionOverlayView: NSView {
             height: abs(end.y - start.y)
         )
 
+        // Defer callbacks to avoid crash when window is hidden/deallocated during event handling
         if rect.width > 10 && rect.height > 10 {
-            onComplete?(rect)
+            DispatchQueue.main.async { [weak self] in
+                self?.onComplete?(rect)
+            }
         } else {
-            onCancel?()
+            DispatchQueue.main.async { [weak self] in
+                self?.onCancel?()
+            }
         }
     }
 

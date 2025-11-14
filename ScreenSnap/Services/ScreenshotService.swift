@@ -266,30 +266,32 @@ class ScreenshotService: NSObject, SelectionWindowDelegate {
 
     private func performCapture(rect: CGRect) {
         print("🎯 [CAPTURE] Début de la capture pour la région: \(rect)")
-        
+
         // Vérifier que le rectangle est valide
         guard rect.width > 0 && rect.height > 0 else {
             print("❌ [CAPTURE] Rectangle de capture invalide: \(rect)")
-            DispatchQueue.main.async {
-                self.showErrorNotification(error: NSError(domain: "ScreenshotService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Rectangle de sélection invalide"]))
+            DispatchQueue.main.async { [weak self] in
+                self?.showErrorNotification(error: NSError(domain: "ScreenshotService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Rectangle de sélection invalide"]))
             }
             return
         }
-        
-        Task {
+
+        Task { [weak self] in
+            guard let self = self else { return }
+
             do {
                 // Essayer d'abord avec ScreenCaptureKit (moderne)
-                let cgImage = try await captureWithScreenCaptureKit(rect: rect)
+                let cgImage = try await self.captureWithScreenCaptureKit(rect: rect)
                 let nsImage = NSImage(cgImage: cgImage, size: rect.size)
-                
+
                 print("✅ [CAPTURE] Capture ScreenCaptureKit réussie - Taille: \(nsImage.size)")
-                await handleSuccessfulCapture(image: nsImage)
-                
+                await self.handleSuccessfulCapture(image: nsImage)
+
             } catch {
                 print("❌ [CAPTURE] ScreenCaptureKit a échoué: \(error.localizedDescription)")
 
-                DispatchQueue.main.async {
-                    self.showErrorNotification(error: error)
+                DispatchQueue.main.async { [weak self] in
+                    self?.showErrorNotification(error: error)
                 }
             }
         }
