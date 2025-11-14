@@ -3,7 +3,7 @@
 **Ultra-fast screenshots for developers**
 
 [![Version](https://img.shields.io/badge/version-1.4-blue.svg)](https://github.com/augiefra/PastScreen/releases/tag/v1.4)
-[![Platform](https://img.shields.io/badge/platform-macOS%2013.0+-lightgrey.svg)](https://www.apple.com/macos/)
+[![Platform](https://img.shields.io/badge/platform-macOS%2014.0+-lightgrey.svg)](https://www.apple.com/macos/)
 [![Swift](https://img.shields.io/badge/Swift-5.9-orange.svg)](https://swift.org/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
@@ -70,7 +70,7 @@ Grant these in **System Settings → Privacy & Security**
 ## 🛠️ Technical Details
 
 - **Framework**: SwiftUI + AppKit
-- **Minimum macOS**: 13.0 (Ventura)
+- **Minimum macOS**: 14.0 (Sonoma)
 - **Architecture**: Native Apple Silicon + Intel
 - **Bundle ID**: `com.augiefra.PastScreen`
 - **Auto-Update**: Sparkle framework

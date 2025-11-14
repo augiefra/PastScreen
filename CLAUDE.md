@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-PastScreen is a native macOS menu bar application for taking quick screenshots and automatically copying them to the clipboard for pasting into IDEs (VSCode, Cursor, Zed, etc.). Built with SwiftUI and AppKit for macOS 13.0+.
+PastScreen is a native macOS menu bar application for taking quick screenshots and automatically copying them to the clipboard for pasting into IDEs (VSCode, Cursor, Zed, etc.). Built with SwiftUI and AppKit for macOS 14.0+.
 
 ## GitHub Repositories
 
@@ -132,7 +132,7 @@ All settings use `@AppStorage` which backs to UserDefaults. Settings survive app
 
 ## macOS-Specific Considerations
 
-- **Minimum Version**: macOS 13.0 (Ventura) - set in deployment target
+- **Minimum Version**: macOS 14.0 (Sonoma) - set in deployment target
 - **System Sounds**: Uses `NSSound(named: "Pop")` for shutter sound
 - **Notifications**: Uses deprecated `NSUserNotification` (may need migration to `UNUserNotificationCenter`)
 - **Pasteboard**: Uses `NSPasteboard.general` for clipboard operations
