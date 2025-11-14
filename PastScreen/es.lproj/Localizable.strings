@@ -1,0 +1,125 @@
+/* Menu Items */
+"menu.tooltip" = "PastScreen - Capturas rápidas";
+"menu.capture_area" = "Capturar área ⌥⌘S";
+"menu.capture_fullscreen" = "Capturar pantalla completa";
+"menu.show_last" = "Mostrar última captura";
+"menu.preferences" = "Preferencias...";
+"menu.quit" = "Salir de PastScreen";
+
+/* Window Titles */
+"window.preferences" = "Preferencias de PastScreen";
+
+/* Settings - Tabs */
+"settings.tab.general" = "General";
+"settings.tab.capture" = "Captura";
+"settings.tab.storage" = "Almacenamiento";
+
+/* Settings - General */
+"settings.general.copy_clipboard" = "Copiar al portapapeles";
+"settings.general.copy_clipboard.help" = "Copiar automáticamente la captura al portapapeles después de capturar";
+"settings.general.play_sound" = "Reproducir sonido";
+"settings.general.play_sound.help" = "Reproducir sonido de obturador al tomar captura";
+"settings.general.show_dimensions" = "Mostrar dimensiones";
+"settings.general.show_dimensions.help" = "Mostrar dimensiones de la selección durante la captura";
+"settings.general.section_title" = "Opciones generales";
+"settings.general.enable_annotations" = "Habilitar anotaciones";
+"settings.general.enable_annotations.help" = "Agregar flechas y texto a las capturas antes de guardar";
+"settings.general.features_section" = "Características";
+"settings.general.show_tutorial" = "Mostrar tutorial al iniciar";
+"settings.general.show_tutorial.help" = "Mostrar consejos útiles al iniciar PastScreen";
+"settings.general.help_section" = "Ayuda y Soporte";
+
+/* Settings - Capture */
+"settings.capture.format_section" = "Formato de imagen";
+"settings.capture.image_format" = "Formato:";
+"settings.capture.format_png" = "PNG (Sin pérdida)";
+"settings.capture.format_jpeg" = "JPEG (Comprimido)";
+"settings.capture.format_help" = "PNG ofrece mejor calidad pero mayor tamaño de archivo. JPEG es más compacto.";
+"settings.capture.shortcuts_section" = "Atajos de teclado";
+"settings.capture.enable_hotkey" = "Habilitar atajo global";
+"settings.capture.enable_hotkey.help" = "Permitir que el atajo de teclado funcione en todo el sistema";
+"settings.capture.capture_area_label" = "Capturar área seleccionada:";
+"settings.capture.click_icon_label" = "O haz clic en el icono de la barra de menú para";
+"settings.capture.open_menu" = "abrir el menú";
+"settings.capture.hotkey_disabled_help" = "Habilita el atajo para capturar desde cualquier lugar";
+
+/* Settings - Storage */
+"settings.storage.section_title" = "Ubicación de almacenamiento";
+"settings.storage.save_to_disk" = "Guardar en disco";
+"settings.storage.save_to_disk.help" = "Guardar capturas como archivos (además del portapapeles)";
+"settings.storage.folder_label" = "Carpeta:";
+"settings.storage.change_button" = "Cambiar...";
+"settings.storage.open_folder" = "Abrir carpeta";
+"settings.storage.clear_folder" = "Vaciar carpeta";
+
+/* Onboarding */
+"onboarding.title" = "Bienvenido a PastScreen 📸";
+"onboarding.subtitle" = "La forma más rápida de capturar y pegar capturas de pantalla";
+"onboarding.why_title" = "¿Por qué PastScreen?";
+"onboarding.ultrafast" = "⚡ Ultra-Rápido";
+"onboarding.ultrafast.desc" = "Captura y pega instantáneamente en tu IDE";
+"onboarding.ultrafast.note" = "Sin gestión de archivos, solo velocidad pura";
+"onboarding.autoclean" = "🧹 Auto-Limpieza";
+"onboarding.autoclean.desc" = "La carpeta de capturas se limpia automáticamente al reiniciar";
+"onboarding.autoclean.note" = "Cero mantenimiento, cero desorden";
+"onboarding.smart_notifications" = "🔔 Notificaciones Inteligentes";
+"onboarding.smart_notifications.desc" = "Retroalimentación discreta que no interrumpe";
+"onboarding.smart_notifications.note" = "Sabrás que funcionó sin interrupciones";
+"onboarding.workflow" = "🎯 Enfocado en el Flujo de Trabajo";
+"onboarding.workflow.desc" = "Diseñado para desarrolladores que viven en su editor";
+"onboarding.workflow.note" = "Capturar → Pegar → Seguir programando";
+"onboarding.customizable" = "⚙️ Personalizable";
+"onboarding.customizable.desc" = "Configura todo: atajos, formatos, almacenamiento";
+"onboarding.vs_native" = "A diferencia de la captura nativa de macOS (⌥⌘S): Sin demora de vista previa, portapapeles directo";
+"onboarding.vs_other" = "A diferencia de otras herramientas: Sin flujos de trabajo complejos ni gestión de archivos";
+"onboarding.dont_show" = "No mostrar esto de nuevo";
+"onboarding.got_it" = "¡Entendido, vamos!";
+
+/* Errors */
+"error.permissions_required.title" = "Se requiere permiso de grabación de pantalla";
+"error.permissions_required.message" = "PastScreen necesita permiso de Grabación de pantalla para capturar pantallas.\n\nVe a Preferencias del Sistema → Seguridad y privacidad → Grabación de pantalla y habilita PastScreen.";
+"error.open_system_prefs" = "Abrir Preferencias del Sistema";
+"error.later" = "Más tarde";
+"error.accessibility_required.title" = "Se requiere permiso de accesibilidad";
+"error.accessibility_required.message" = "PastScreen necesita permiso de Accesibilidad para registrar atajos de teclado globales.\n\nVe a Ajustes del Sistema → Privacidad y seguridad → Accesibilidad y habilita PastScreen.";
+"error.open_system_settings" = "Abrir Ajustes del Sistema";
+"error.capture_error" = "Error en la captura de pantalla";
+"error.unable_to_launch" = "No se puede iniciar PastScreen";
+"error.file_not_found.title" = "Archivo no encontrado";
+"error.file_not_found.message" = "No se pudo encontrar la última captura. Es posible que haya sido eliminada o movida.";
+"error.invalid_rectangle" = "Área de selección inválida";
+"error.permission_denied" = "Permiso denegado";
+"error.capture_interrupted" = "La captura de pantalla fue interrumpida";
+
+/* Notifications */
+"notification.screenshot_ready" = "Captura lista";
+"notification.click_to_reveal" = "Haz clic para mostrar en Finder";
+"notification.screenshot_saved" = "Captura guardada en el portapapeles";
+"notification.reveal_in_finder" = "Mostrar en Finder";
+"notification.dismiss" = "Cerrar";
+
+/* Onboarding */
+"onboarding.subtitle" = "Capturas de pantalla para desarrolladores";
+"onboarding.button.previous" = "Anterior";
+"onboarding.button.next" = "Siguiente";
+"onboarding.button.start" = "Comenzar";
+
+"onboarding.page1.title" = "Ultra Rápido";
+"onboarding.page1.description" = "Captura y pega en segundos.\n⌥⌘S → Capturar → ⌘V en tu IDE";
+
+"onboarding.page2.title" = "Limpieza Automática";
+"onboarding.page2.description" = "Todas las capturas se eliminan automáticamente al reiniciar.\n¡No más carpetas desbordadas!";
+
+"onboarding.page3.title" = "Portapapeles Directo";
+"onboarding.page3.description" = "Copia automática al portapapeles.\nPerfecto para Cursor, VSCode, Zed.";
+
+"onboarding.page4.title" = "Personalizable";
+"onboarding.page4.description" = "Atajos, formatos, carpetas...\nTodo configurable desde la barra de menú.";
+
+/* Onboarding - Permissions */
+"onboarding.permissions.screen_recording.title" = "Grabación de pantalla";
+"onboarding.permissions.screen_recording.description" = "Requerido para capturar tu pantalla.\nHaz clic abajo para conceder permiso.";
+"onboarding.permissions.accessibility.title" = "Atajo de teclado";
+"onboarding.permissions.accessibility.description" = "Requerido para el atajo global ⌥⌘S.\nHaz clic abajo para conceder permiso.";
+"onboarding.permissions.grant" = "Conceder permiso";
+"onboarding.permissions.granted" = "Permiso concedido";

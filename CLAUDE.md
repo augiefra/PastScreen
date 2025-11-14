@@ -4,7 +4,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-ScreenSnap is a native macOS menu bar application for taking quick screenshots and automatically copying them to the clipboard for pasting into IDEs (VSCode, Cursor, Zed, etc.). Built with SwiftUI and AppKit for macOS 13.0+.
+PastScreen is a native macOS menu bar application for taking quick screenshots and automatically copying them to the clipboard for pasting into IDEs (VSCode, Cursor, Zed, etc.). Built with SwiftUI and AppKit for macOS 13.0+.
+
+## GitHub Repositories
+
+**Public Repository**: https://github.com/augiefra/PastScreen
+→ Official public releases and distribution
+
+**Development Repository**: https://github.com/augiefra/PastScreen-dev
+→ Active development branch
+→ All commits should go here
+→ This is a bare git repo (no README needed)
 
 ## Build and Development Commands
 
@@ -16,10 +26,10 @@ This project requires Xcode (not Swift Package Manager alone) because SPM doesn'
 open -a Xcode
 
 # For first-time setup, create a new macOS App project:
-# - Product Name: ScreenSnap
+# - Product Name: PastScreen
 # - Interface: SwiftUI
 # - Language: Swift
-# - Import files from ScreenSnapApp/ScreenSnapApp directory
+# - Import files from PastScreenApp/PastScreenApp directory
 ```
 
 ### Building
@@ -34,7 +44,7 @@ The app launches as a menu bar item (camera icon) in the macOS status bar, not a
 
 ### App Structure (MVVM Pattern)
 
-**Entry Point**: `ScreenSnapAppApp.swift`
+**Entry Point**: `PastScreenAppApp.swift`
 - Main `@main` app entry with SwiftUI `App` protocol
 - `AppDelegate` handles menu bar lifecycle and service initialization
 - Creates `NSStatusItem` for menu bar presence
@@ -103,7 +113,7 @@ Add to Info.plist:
 - `NSScreenCaptureUsageDescription`: Required for screen capture
 
 ### Entitlements
-Check `ScreenSnapApp.entitlements` for required app sandbox settings.
+Check `PastScreenApp.entitlements` for required app sandbox settings.
 
 ### Carbon API for Hotkeys
 Modern Swift must bridge to Carbon's C API for global hotkeys. The `HotKeyManager` uses:

@@ -1,0 +1,125 @@
+/* Menu Items */
+"menu.tooltip" = "PastScreen - Screenshot veloci";
+"menu.capture_area" = "Cattura area ⌥⌘S";
+"menu.capture_fullscreen" = "Cattura schermo intero";
+"menu.show_last" = "Mostra ultimo screenshot";
+"menu.preferences" = "Preferenze...";
+"menu.quit" = "Esci da PastScreen";
+
+/* Window Titles */
+"window.preferences" = "Preferenze di PastScreen";
+
+/* Settings - Tabs */
+"settings.tab.general" = "Generale";
+"settings.tab.capture" = "Acquisizione";
+"settings.tab.storage" = "Archiviazione";
+
+/* Settings - General */
+"settings.general.copy_clipboard" = "Copia negli appunti";
+"settings.general.copy_clipboard.help" = "Copia automaticamente lo screenshot negli appunti dopo l'acquisizione";
+"settings.general.play_sound" = "Riproduci suono";
+"settings.general.play_sound.help" = "Riproduci suono dell'otturatore quando si scatta lo screenshot";
+"settings.general.show_dimensions" = "Mostra dimensioni";
+"settings.general.show_dimensions.help" = "Visualizza le dimensioni della selezione durante l'acquisizione";
+"settings.general.section_title" = "Opzioni generali";
+"settings.general.enable_annotations" = "Abilita annotazioni";
+"settings.general.enable_annotations.help" = "Aggiungi frecce e testo agli screenshot prima di salvare";
+"settings.general.features_section" = "Funzionalità";
+"settings.general.show_tutorial" = "Mostra tutorial all'avvio";
+"settings.general.show_tutorial.help" = "Mostra suggerimenti utili all'avvio di PastScreen";
+"settings.general.help_section" = "Aiuto e Supporto";
+
+/* Settings - Capture */
+"settings.capture.format_section" = "Formato immagine";
+"settings.capture.image_format" = "Formato:";
+"settings.capture.format_png" = "PNG (Senza perdita)";
+"settings.capture.format_jpeg" = "JPEG (Compresso)";
+"settings.capture.format_help" = "PNG offre una qualità migliore ma file più grandi. JPEG è più compatto.";
+"settings.capture.shortcuts_section" = "Scorciatoie da tastiera";
+"settings.capture.enable_hotkey" = "Abilita scorciatoia globale";
+"settings.capture.enable_hotkey.help" = "Consenti alla scorciatoia da tastiera di funzionare in tutto il sistema";
+"settings.capture.capture_area_label" = "Cattura area selezionata:";
+"settings.capture.click_icon_label" = "O fai clic sull'icona nella barra dei menu per";
+"settings.capture.open_menu" = "aprire il menu";
+"settings.capture.hotkey_disabled_help" = "Abilita la scorciatoia per catturare da qualsiasi posizione";
+
+/* Settings - Storage */
+"settings.storage.section_title" = "Posizione di archiviazione";
+"settings.storage.save_to_disk" = "Salva su disco";
+"settings.storage.save_to_disk.help" = "Salva gli screenshot come file (oltre agli appunti)";
+"settings.storage.folder_label" = "Cartella:";
+"settings.storage.change_button" = "Cambia...";
+"settings.storage.open_folder" = "Apri cartella";
+"settings.storage.clear_folder" = "Svuota cartella";
+
+/* Onboarding */
+"onboarding.title" = "Benvenuto in PastScreen 📸";
+"onboarding.subtitle" = "Il modo più veloce per catturare e incollare screenshot";
+"onboarding.why_title" = "Perché PastScreen?";
+"onboarding.ultrafast" = "⚡ Ultra-Veloce";
+"onboarding.ultrafast.desc" = "Cattura e incolla istantaneamente nel tuo IDE";
+"onboarding.ultrafast.note" = "Nessuna gestione di file, solo velocità pura";
+"onboarding.autoclean" = "🧹 Pulizia Automatica";
+"onboarding.autoclean.desc" = "La cartella degli screenshot si pulisce automaticamente al riavvio";
+"onboarding.autoclean.note" = "Zero manutenzione, zero disordine";
+"onboarding.smart_notifications" = "🔔 Notifiche Intelligenti";
+"onboarding.smart_notifications.desc" = "Feedback discreto che non disturba";
+"onboarding.smart_notifications.note" = "Saprai che ha funzionato senza interruzioni";
+"onboarding.workflow" = "🎯 Focalizzato sul Flusso di Lavoro";
+"onboarding.workflow.desc" = "Progettato per sviluppatori che vivono nel loro editor";
+"onboarding.workflow.note" = "Cattura → Incolla → Continua a programmare";
+"onboarding.customizable" = "⚙️ Personalizzabile";
+"onboarding.customizable.desc" = "Configura tutto: scorciatoie, formati, archiviazione";
+"onboarding.vs_native" = "A differenza dello screenshot nativo di macOS (⌥⌘S): Nessun ritardo nell'anteprima, appunti diretti";
+"onboarding.vs_other" = "A differenza di altri strumenti: Nessun flusso di lavoro complesso o gestione di file";
+"onboarding.dont_show" = "Non mostrare più questo messaggio";
+"onboarding.got_it" = "Capito, andiamo!";
+
+/* Errors */
+"error.permissions_required.title" = "Autorizzazione registrazione schermo richiesta";
+"error.permissions_required.message" = "PastScreen necessita dell'autorizzazione di Registrazione schermo per catturare screenshot.\n\nVai in Preferenze di Sistema → Sicurezza e Privacy → Registrazione schermo e abilita PastScreen.";
+"error.open_system_prefs" = "Apri Preferenze di Sistema";
+"error.later" = "Più tardi";
+"error.accessibility_required.title" = "Autorizzazione accessibilità richiesta";
+"error.accessibility_required.message" = "PastScreen necessita dell'autorizzazione di Accessibilità per registrare scorciatoie da tastiera globali.\n\nVai in Impostazioni di Sistema → Privacy e Sicurezza → Accessibilità e abilita PastScreen.";
+"error.open_system_settings" = "Apri Impostazioni di Sistema";
+"error.capture_error" = "Acquisizione screenshot fallita";
+"error.unable_to_launch" = "Impossibile avviare PastScreen";
+"error.file_not_found.title" = "File non trovato";
+"error.file_not_found.message" = "L'ultimo screenshot non è stato trovato. Potrebbe essere stato eliminato o spostato.";
+"error.invalid_rectangle" = "Area di selezione non valida";
+"error.permission_denied" = "Autorizzazione negata";
+"error.capture_interrupted" = "L'acquisizione dello screenshot è stata interrotta";
+
+/* Notifications */
+"notification.screenshot_ready" = "Screenshot pronto";
+"notification.click_to_reveal" = "Fai clic per mostrare nel Finder";
+"notification.screenshot_saved" = "Screenshot salvato negli appunti";
+"notification.reveal_in_finder" = "Mostra nel Finder";
+"notification.dismiss" = "Chiudi";
+
+/* Onboarding */
+"onboarding.subtitle" = "Screenshot per sviluppatori";
+"onboarding.button.previous" = "Precedente";
+"onboarding.button.next" = "Successivo";
+"onboarding.button.start" = "Inizia";
+
+"onboarding.page1.title" = "Ultra Veloce";
+"onboarding.page1.description" = "Cattura e incolla in pochi secondi.\n⌥⌘S → Cattura → ⌘V nel tuo IDE";
+
+"onboarding.page2.title" = "Pulizia Automatica";
+"onboarding.page2.description" = "Tutte le catture vengono eliminate automaticamente al riavvio.\nBasta cartelle piene!";
+
+"onboarding.page3.title" = "Appunti Diretti";
+"onboarding.page3.description" = "Copia automatica negli appunti.\nPerfetto per Cursor, VSCode, Zed.";
+
+"onboarding.page4.title" = "Personalizzabile";
+"onboarding.page4.description" = "Scorciatoie, formati, cartelle...\nTutto configurabile dalla barra dei menu.";
+
+/* Onboarding - Permissions */
+"onboarding.permissions.screen_recording.title" = "Registrazione schermo";
+"onboarding.permissions.screen_recording.description" = "Richiesto per acquisire lo schermo.\nClicca sotto per concedere il permesso.";
+"onboarding.permissions.accessibility.title" = "Scorciatoia da tastiera";
+"onboarding.permissions.accessibility.description" = "Richiesto per la scorciatoia globale ⌥⌘S.\nClicca sotto per concedere il permesso.";
+"onboarding.permissions.grant" = "Concedi permesso";
+"onboarding.permissions.granted" = "Permesso concesso";

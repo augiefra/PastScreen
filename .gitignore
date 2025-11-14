@@ -92,5 +92,5 @@ iOSInjectionProject/
 # macOS
 .DS_Store
 
-# ScreenSnap old code (reference only)
-ScreenSnapApp/
+# PastScreen old code (reference only)
+PastScreenApp/
