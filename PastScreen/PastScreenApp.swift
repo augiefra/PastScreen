@@ -29,7 +29,7 @@ struct PastScreenApp: App {
     }
 }
 
-class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, NSUserNotificationCenterDelegate {
     var statusItem: NSStatusItem?
     var statusMenu: NSMenu?  // Référence persistante au menu
     var screenshotService: ScreenshotService?
@@ -60,7 +60,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         // }
 
         // Setup notification center delegate first
-        UNUserNotificationCenter.current().delegate = self
+        NSUserNotificationCenter.default.delegate = self
 
         // IMPORTANT: Don't check permissions at startup to avoid system pop-ups
         // Permissions will be requested through the onboarding flow
@@ -101,9 +101,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         // Setup menu
         setupMenu()
 
-        // Request notification permissions at startup
-        requestNotificationPermission()
-        
+        // NSUserNotification n'a pas besoin de demande de permission explicite
+        // (contrairement à UNUserNotificationCenter)
+
         // Configurer le raccourci clavier global Option + Cmd + S
         setupGlobalHotkey()
         
@@ -321,32 +321,35 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         NSApplication.shared.terminate(nil)
     }
     
-    // Forcer l'affichage des notifications même quand l'app est active
-    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        print("🔔 [DELEGATE] willPresent appelé - notification à afficher")
-        print("🔔 [DELEGATE] Titre: \(notification.request.content.title)")
-        print("🔔 [DELEGATE] Body: \(notification.request.content.body)")
+    // MARK: - NSUserNotificationCenterDelegate (pour compatibilité LSUIElement)
 
-        // Afficher la notification même si l'app est au premier plan
-        // Utiliser .list au lieu de .banner pour macOS 12+
-        if #available(macOS 12.0, *) {
-            completionHandler([.list, .banner])
-        } else {
-            completionHandler([.banner])
-        }
+    // Forcer l'affichage des notifications même quand l'app est active
+    func userNotificationCenter(_ center: NSUserNotificationCenter, shouldPresent notification: NSUserNotification) -> Bool {
+        print("🔔 [DELEGATE] shouldPresent appelé - notification à afficher")
+        print("🔔 [DELEGATE] Titre: \(notification.title ?? "N/A")")
+        print("🔔 [DELEGATE] Body: \(notification.informativeText ?? "N/A")")
+
+        // Toujours afficher la notification même si l'app est au premier plan
+        return true
     }
 
-    // UNUserNotificationCenter - gérer le clic
-    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
-        // Récupérer le chemin du fichier depuis userInfo
-        if let filePath = response.notification.request.content.userInfo["filePath"] as? String {
-            print("🖱️ Clic sur notification UN - ouverture du fichier: \(filePath)")
+    // Gérer le clic sur la notification
+    func userNotificationCenter(_ center: NSUserNotificationCenter, didActivate notification: NSUserNotification) {
+        print("🖱️ [DELEGATE] Notification activée")
 
-            // Ouvrir le Finder et sélectionner le fichier
-            NSWorkspace.shared.selectFile(filePath, inFileViewerRootedAtPath: "")
+        // Vérifier si c'est un clic sur le contenu
+        if notification.activationType == .contentsClicked {
+            // Récupérer le chemin du fichier depuis userInfo
+            if let filePath = notification.userInfo?["filePath"] as? String {
+                print("🖱️ Clic sur notification - ouverture du fichier: \(filePath)")
+
+                // Ouvrir le Finder et sélectionner le fichier
+                NSWorkspace.shared.selectFile(filePath, inFileViewerRootedAtPath: "")
+            }
         }
 
-        completionHandler()
+        // Retirer la notification après clic
+        center.removeDeliveredNotification(notification)
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -358,15 +361,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         }
     }
 
-    func requestNotificationPermission() {
-        print("🔔 [APP] Requesting notification permission...")
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
-            if let error = error {
-                print("❌ [APP] Notification permission error: \(error)")
-            }
-            print(granted ? "✅ [APP] Notification permission granted" : "⚠️ [APP] Notification permission denied")
-        }
-    }
+    // Note: requestNotificationPermission n'est plus nécessaire avec NSUserNotification
+    // NSUserNotification (deprecated) ne nécessite pas de demande de permission explicite
+    // contrairement à UNUserNotificationCenter qui nécessite requestAuthorization()
 
     func requestAllPermissions() {
         print("🔐 [APP] Requesting all necessary permissions...")

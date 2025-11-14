@@ -206,26 +206,20 @@ class ScreenshotService: NSObject, SelectionWindowDelegate {
 
     // MARK: - Notification Routing
 
-    /// Détecte si l'app est en mode .accessory (menu bar only)
+    /// Affiche notification macOS (NSUserNotification pour compatibilité LSUIElement)
     private func showSuccessNotification(filePath: String?) {
-        // 1. Notification macOS classique
-        let notification = UNMutableNotificationContent()
+        // 1. Notification macOS avec NSUserNotification (deprecated mais fonctionne avec LSUIElement)
+        let notification = NSUserNotification()
         notification.title = "PastScreen"
-        notification.body = NSLocalizedString("notification.screenshot_saved", comment: "")
-        notification.sound = .default
+        notification.informativeText = NSLocalizedString("notification.screenshot_saved", comment: "")
+        notification.soundName = NSUserNotificationDefaultSoundName
 
         // Ajouter le chemin du fichier pour pouvoir l'ouvrir au clic
         if let filePath = filePath {
             notification.userInfo = ["filePath": filePath]
         }
 
-        let request = UNNotificationRequest(
-            identifier: UUID().uuidString,
-            content: notification,
-            trigger: nil
-        )
-
-        UNUserNotificationCenter.current().add(request)
+        NSUserNotificationCenter.default.deliver(notification)
 
         // 2. "Saved" dans la menu bar pendant 3 secondes
         DynamicIslandManager.shared.show(message: "Saved", duration: 3.0)
