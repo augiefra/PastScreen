@@ -106,8 +106,8 @@ class CustomNotificationManager {
         NSAnimationContext.runAnimationGroup({ context in
             context.duration = 0.2
             panel.animator().alphaValue = 0.0
-        }, completionHandler: { [weak self] in
-            panel.close()
+        }, completionHandler: { [weak self, weak panel] in
+            panel?.close()
             self?.notificationPanel = nil
             print("🗑️ [CUSTOM NOTIF] Notification dismissed")
         })

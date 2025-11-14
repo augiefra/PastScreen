@@ -127,7 +127,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
 
         // Show onboarding if first launch
         NSLog("🚀 [APP] About to show onboarding...")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            guard self != nil else { return }
             NSLog("🚀 [APP] Calling OnboardingManager.showIfNeeded()")
             OnboardingManager.shared.showIfNeeded()
         }
@@ -353,7 +354,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         }
 
         // Check if any permissions are missing after 2 seconds
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+            guard let self = self else { return }
             let missing = self.permissionManager.getMissingPermissions()
             if !missing.isEmpty {
                 print("⚠️ [APP] Missing permissions: \(missing.map { $0.rawValue }.joined(separator: ", "))")
@@ -426,7 +428,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
                 self?.screenshotService?.capturePreviousApp()
 
                 // Petit délai pour laisser capturePreviousApp() s'exécuter
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
                     self?.screenshotService?.captureScreenshot()
                 }
             }
