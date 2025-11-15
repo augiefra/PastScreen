@@ -30,21 +30,6 @@ See full changelog in [`appcast.xml`](appcast.xml) or the [GitHub Releases](http
 
 ---
 
-## 🚀 Quick Start
-```bash
-# Clone the development repo
- git clone https://github.com/augiefra/PastScreen-dev.git
- cd PastScreen-dev
- open PastScreen.xcodeproj
-```
-1. Select the `PastScreen` scheme, destination `My Mac`.
-2. Build & Run (⌘R). Grant Accessibility + Screen Recording permissions when prompted.
-3. Use ⌥⌘S to capture a custom region. Images go straight to your clipboard and temporary folder (`~/Library/Caches/PastScreen`).
-
-For release builds (Sparkle-ready), follow [`RELEASE_PROCESS.md`](RELEASE_PROCESS.md).
-
----
-
 ## 🧩 Tech Stack
 - **Swift 5.9**, AppKit + SwiftUI hybrid UI.
 - **ScreenCaptureKit** for safe, high-quality captures.
@@ -77,6 +62,6 @@ PastScreen never uploads or transmits captures. All operations run locally.
 ---
 
 ## 🙌 Credits & License
-Built by **Eric Cologni (@augiefra)** for developers needing instant, reliable screenshots. Licensed under the [MIT License](LICENSE).
+Built by **(@augiefra)** for developers needing instant, reliable screenshots. Licensed under the [MIT License](LICENSE).
 
 Contributions welcome! File issues, discuss ideas, or propose PRs. Enjoy lightning-fast screenshots. ⚡️
